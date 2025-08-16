@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CCTA Filter Hub - Full Visual</title>
+<title>CCTA Filter Hub - Full 644</title>
 <style>
 body { margin:0; font-family:sans-serif; background:#f5f5f5; }
 header { background:#ff5e5e; color:#fff; padding:20px; text-align:center; font-size:2em; font-weight:bold; }
@@ -53,40 +53,22 @@ input#searchInput { width:80%; padding:8px; margin:10px auto; display:block; bor
 </div>
 
 <script>
-// --- JSON 644 filter dengan ikon ---
-const filters = {
-  "🎨 Filter Media": [],
-  "🤖 AI / Generatif": [],
-  "📷 Lens / Kamera": [],
-  "🔒 Konten / Keamanan": [],
-  "🧭 Navigasi / Marketplace": [],
-  "🛠️ Editing Lanjutan": []
-};
-
-// Generate filter
-const totalPerCategory = 107; // 107 x 6 = 642
-Object.keys(filters).forEach(cat=>{
-    for(let i=1;i<=totalPerCategory;i++){
-        filters[cat].push({
-            name: `Filter ${i}`,
-            icon: cat[0], // simbol pertama kategori sebagai ikon
-            subfilters: [`Subfilter ${i}.1`, `Subfilter ${i}.2`]
-        });
-    }
-});
-// Tambah 2 filter ekstra di Filter Media untuk total 644
-filters["🎨 Filter Media"].push(
-  {name:"Filter 108", icon:"🎨", subfilters:["Subfilter 108.1","Subfilter 108.2"]},
-  {name:"Filter 109", icon:"🎨", subfilters:["Subfilter 109.1","Subfilter 109.2"]}
-);
-
-// --- Load Filters ---
 const filterContainer = document.getElementById("filterContainer");
 const modal = document.getElementById("modal");
 const closeModal = document.getElementById("closeModal");
 const modalBody = document.getElementById("modalBody");
 const searchInput = document.getElementById("searchInput");
 
+// Load JSON lengkap
+async function loadFiltersJSON() {
+    try {
+        const res = await fetch('filters_644_full.json'); // file JSON lengkap
+        const filters = await res.json();
+        initFilters(filters);
+    } catch(e){ console.error("Gagal load JSON", e); }
+}
+
+// Render filters
 function initFilters(filters){
     filterContainer.innerHTML="";
     for(let cat in filters){
@@ -99,12 +81,10 @@ function initFilters(filters){
         filters[cat].forEach(f=>{
             const card=document.createElement("div");
             card.className="card";
-            const iconSpan=document.createElement("span"); 
-            iconSpan.className="card-icon"; 
-            iconSpan.textContent=f.icon;
+            const iconSpan=document.createElement("span");
+            iconSpan.className="card-icon"; iconSpan.textContent=f.icon;
             card.appendChild(iconSpan);
-            const nameSpan=document.createElement("span"); 
-            nameSpan.textContent=f.name;
+            const nameSpan=document.createElement("span"); nameSpan.textContent=f.name;
             card.appendChild(nameSpan);
             card.onclick=()=>showFilterDetails(f);
             grid.appendChild(card);
@@ -117,6 +97,7 @@ function initFilters(filters){
     }
 }
 
+// Modal
 function showFilterDetails(filter){
     modalBody.innerHTML="<h3>"+filter.name+"</h3>";
     filter.subfilters.forEach(s=>{
@@ -125,7 +106,6 @@ function showFilterDetails(filter){
     });
     modal.style.display="flex";
 }
-
 closeModal.onclick=()=>modal.style.display="none";
 
 // Search realtime
@@ -148,8 +128,8 @@ document.getElementById("uploadInput").addEventListener("change",function(){ ale
 document.getElementById("downloadBtn").addEventListener("click",()=>{ alert("Download akan dimulai!"); });
 document.getElementById("cobaSekarangBtn").onclick=()=>{ window.scrollTo({ top: filterContainer.offsetTop, behavior:'smooth' }); }
 
-// Initialize
-initFilters(filters);
+// Load JSON
+loadFiltersJSON();
 </script>
 
 </body>
