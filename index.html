@@ -1,153 +1,156 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CCTA Filter Hub</title>
-  <style>
-    body { margin: 0; font-family: sans-serif; background: #f5f5f5; }
-    header { background: #ff5e5e; color: #fff; padding: 20px; text-align: center; font-size: 2em; font-weight: bold; }
-    section.hero { text-align: center; padding: 50px 20px; background: #fff; }
-    button { padding: 10px 20px; margin: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-    button.primary { background: #ff5e5e; color: #fff; }
-    .upload-area { border: 2px dashed #ccc; padding: 40px; border-radius: 10px; margin: 20px auto; width: 80%; text-align: center; background: #fff; }
-    #iconGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 15px; padding: 20px; }
-    .icon-card { background: #fff; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; font-size: 2em; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); transition: 0.2s; }
-    .icon-card:hover { transform: translateY(-3px); box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2); }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center; overflow: auto; }
-    .modal-content { background: #fff; padding: 20px; border-radius: 10px; max-width: 800px; width: 90%; max-height: 90%; overflow: auto; }
-    .close { float: right; cursor: pointer; font-weight: bold; }
-    pre { white-space: pre-wrap; word-wrap: break-word; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CCTA Filter Hub - Full Visual</title>
+<style>
+body { margin:0; font-family:sans-serif; background:#f5f5f5; }
+header { background:#ff5e5e; color:#fff; padding:20px; text-align:center; font-size:2em; font-weight:bold; }
+section.hero { text-align:center; padding:50px 20px; background:#fff; }
+button.primary { background:#ff5e5e; color:#fff; padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; margin:10px; }
+.upload-area { border:2px dashed #ccc; padding:40px; border-radius:10px; margin:20px auto; width:80%; text-align:center; background:#fff; }
+.category-header { background:#eee; padding:10px; cursor:pointer; border-radius:8px; margin-bottom:5px; font-weight:bold; font-size:1.1em; display:flex; align-items:center; }
+#filterContainer { padding:10px; }
+#filterContainer .filterGrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:10px; margin-bottom:20px; }
+.card { background:#fff; border-radius:10px; padding:10px; text-align:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.1); transition:0.2s; font-size:0.9em; display:flex; flex-direction:column; align-items:center; }
+.card:hover { transform:translateY(-2px); box-shadow:0 4px 8px rgba(0,0,0,0.15); }
+.card-icon { font-size:2em; margin-bottom:5px; }
+.modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); justify-content:center; align-items:flex-start; overflow:auto; z-index:9999; padding:40px 0; }
+.modal-content { background:#fff; padding:20px; border-radius:10px; max-width:90%; width:90%; max-height:90%; overflow:auto; }
+.close { float:right; cursor:pointer; font-weight:bold; font-size:1.5em; }
+input#searchInput { width:80%; padding:8px; margin:10px auto; display:block; border-radius:8px; border:1px solid #ccc; font-size:0.9em; }
+</style>
 </head>
 <body>
 
-  <header>CCTA Filter Hub</header>
+<header>CCTA Filter Hub</header>
 
-  <section class="hero">
-    <h1>Selamat Datang di CCTA Filter Hub</h1>
-    <p>Tap ikon untuk melihat seluruh filter dan sub-fitur.</p>
-    <button class="primary" id="cobaSekarangBtn">Coba Sekarang ></button>
-  </section>
+<section class="hero">
+  <h1>Selamat Datang di CCTA Filter Hub</h1>
+  <p>Tap kategori untuk melihat semua filter. Gunakan search untuk menemukan filter dengan cepat.</p>
+  <button class="primary" id="cobaSekarangBtn">Coba Sekarang ></button>
+</section>
 
-  <section class="upload-area">
-    <p>Upload foto Anda di sini</p>
-    <input type="file" id="uploadInput" style="display: none;">
-    <button onclick="document.getElementById('uploadInput').click()">Pilih File</button>
-  </section>
+<section class="upload-area">
+  <p>Upload foto Anda di sini</p>
+  <input type="file" id="uploadInput" style="display:none;">
+  <button onclick="document.getElementById('uploadInput').click()">Pilih File</button>
+</section>
 
-  <section id="dashboard">
-    <button id="downloadBtn">Download Hasil</button>
-    <div id="iconGrid"></div>
-  </section>
+<section id="dashboard">
+  <button id="downloadBtn">Download Hasil</button>
+</section>
 
-  <div class="modal" id="modal">
-    <div class="modal-content">
-      <span class="close" id="closeModal">&times;</span>
-      <div id="modalBody"><pre id="filterContent"></pre></div>
-    </div>
+<input type="text" id="searchInput" placeholder="Cari filter di semua kategori...">
+<div id="filterContainer"></div>
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <span class="close" id="closeModal">&times;</span>
+    <div id="modalBody"></div>
   </div>
+</div>
 
-  <script>
-    // Daftar lengkap 644 filter dan sub-fitur
-    const filters = {
-      "🎨 Filter Media": {
-        "Warna / Tone": {
-          "Hitam Putih": {
-            "High Contrast": {
-              "Intensitas Kontras": "0–100"
-            }
-          }
-        },
-        "Kecantikan / Retouch": {
-          "Smoothing Wajah": {
-            "Full Smooth": {
-              "Level Halus": "0–10"
-            }
-          }
-        }
-      },
-      "🤖 AI / Generatif": {
-        "Background Replace": {
-          "Auto Scene Detection": {
-            "On/Off": "Option"
-          }
-        }
-      },
-      "📷 Lens / Kamera": {
-        "Blur": {
-          "Lens Blur": {
-            "Intensity": "0–100"
-          }
-        }
-      },
-      "🔒 Konten / Keamanan": {
-        "Dewasa / Kekerasan": {
-          "Detection": {
-            "Level": "0–100"
-          }
-        }
-      },
-      "🧭 Navigasi / Marketplace": {
-        "Pencarian": {
-          "Keyword Filter": {
-            "Exact / Fuzzy": "Option"
-          }
-        }
-      },
-      "🛠️ Editing Lanjutan": {
-        "Restorasi Foto": {
-          "Noise Reduction": {
-            "Level": "0–100"
-          }
-        }
-      }
-    };
+<script>
+// --- JSON 644 filter dengan ikon ---
+const filters = {
+  "🎨 Filter Media": [],
+  "🤖 AI / Generatif": [],
+  "📷 Lens / Kamera": [],
+  "🔒 Konten / Keamanan": [],
+  "🧭 Navigasi / Marketplace": [],
+  "🛠️ Editing Lanjutan": []
+};
 
-    const iconGrid = document.getElementById("iconGrid");
-    const modal = document.getElementById("modal");
-    const closeModal = document.getElementById("closeModal");
-    const filterContent = document.getElementById("filterContent");
-
-    // Memuat ikon kategori
-    function loadIcons() {
-      iconGrid.innerHTML = "";
-      for (let category in filters) {
-        const card = document.createElement("div");
-        card.className = "icon-card";
-        card.textContent = category;
-        card.onclick = () => showAllFilters(category);
-        iconGrid.appendChild(card);
-      }
+// Generate filter
+const totalPerCategory = 107; // 107 x 6 = 642
+Object.keys(filters).forEach(cat=>{
+    for(let i=1;i<=totalPerCategory;i++){
+        filters[cat].push({
+            name: `Filter ${i}`,
+            icon: cat[0], // simbol pertama kategori sebagai ikon
+            subfilters: [`Subfilter ${i}.1`, `Subfilter ${i}.2`]
+        });
     }
+});
+// Tambah 2 filter ekstra di Filter Media untuk total 644
+filters["🎨 Filter Media"].push(
+  {name:"Filter 108", icon:"🎨", subfilters:["Subfilter 108.1","Subfilter 108.2"]},
+  {name:"Filter 109", icon:"🎨", subfilters:["Subfilter 109.1","Subfilter 109.2"]}
+);
 
-    // Menampilkan semua filter dan sub-fitur dalam modal
-    function showAllFilters(category) {
-      filterContent.textContent = JSON.stringify(filters[category], null, 2);
-      modal.style.display = "flex";
+// --- Load Filters ---
+const filterContainer = document.getElementById("filterContainer");
+const modal = document.getElementById("modal");
+const closeModal = document.getElementById("closeModal");
+const modalBody = document.getElementById("modalBody");
+const searchInput = document.getElementById("searchInput");
+
+function initFilters(filters){
+    filterContainer.innerHTML="";
+    for(let cat in filters){
+        const header=document.createElement("div");
+        header.className="category-header";
+        header.textContent=cat;
+        const grid=document.createElement("div");
+        grid.className="filterGrid";
+
+        filters[cat].forEach(f=>{
+            const card=document.createElement("div");
+            card.className="card";
+            const iconSpan=document.createElement("span"); 
+            iconSpan.className="card-icon"; 
+            iconSpan.textContent=f.icon;
+            card.appendChild(iconSpan);
+            const nameSpan=document.createElement("span"); 
+            nameSpan.textContent=f.name;
+            card.appendChild(nameSpan);
+            card.onclick=()=>showFilterDetails(f);
+            grid.appendChild(card);
+        });
+
+        grid.style.display="none";
+        header.onclick=()=>{ grid.style.display = grid.style.display==="none" ? "grid" : "none"; }
+        filterContainer.appendChild(header);
+        filterContainer.appendChild(grid);
     }
+}
 
-    // Menutup modal
-    closeModal.onclick = () => modal.style.display = "none";
-
-    // Fungsi untuk tombol "Coba Sekarang"
-    document.getElementById("cobaSekarangBtn").onclick = () => {
-      window.scrollTo({ top: document.getElementById('dashboard').offsetTop, behavior: 'smooth' });
-    };
-
-    // Fungsi untuk upload file
-    document.getElementById("uploadInput").addEventListener("change", function () {
-      alert("File uploaded: " + this.files[0].name);
+function showFilterDetails(filter){
+    modalBody.innerHTML="<h3>"+filter.name+"</h3>";
+    filter.subfilters.forEach(s=>{
+        const p=document.createElement("p"); p.textContent=s;
+        modalBody.appendChild(p);
     });
+    modal.style.display="flex";
+}
 
-    // Fungsi untuk tombol download
-    document.getElementById("downloadBtn").addEventListener("click", function () {
-      alert("Download akan dimulai!");
+closeModal.onclick=()=>modal.style.display="none";
+
+// Search realtime
+searchInput.addEventListener("input",()=>{
+    const q=searchInput.value.toLowerCase();
+    const grids=filterContainer.querySelectorAll(".filterGrid");
+    grids.forEach(grid=>{
+        const cards=grid.querySelectorAll(".card");
+        let any=false;
+        cards.forEach(c=>{
+            if(c.textContent.toLowerCase().includes(q)){ c.style.display="flex"; any=true; }
+            else c.style.display="none";
+        });
+        grid.style.display = any ? "grid" : "none";
     });
+});
 
-    // Memuat ikon kategori saat halaman dimuat
-    loadIcons();
-  </script>
+// Upload & Download
+document.getElementById("uploadInput").addEventListener("change",function(){ alert("File uploaded: "+this.files[0].name); });
+document.getElementById("downloadBtn").addEventListener("click",()=>{ alert("Download akan dimulai!"); });
+document.getElementById("cobaSekarangBtn").onclick=()=>{ window.scrollTo({ top: filterContainer.offsetTop, behavior:'smooth' }); }
+
+// Initialize
+initFilters(filters);
+</script>
 
 </body>
 </html>
