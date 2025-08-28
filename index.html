@@ -1,136 +1,373 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CCTA Filter Hub - Full 644</title>
-<style>
-body { margin:0; font-family:sans-serif; background:#f5f5f5; }
-header { background:#ff5e5e; color:#fff; padding:20px; text-align:center; font-size:2em; font-weight:bold; }
-section.hero { text-align:center; padding:50px 20px; background:#fff; }
-button.primary { background:#ff5e5e; color:#fff; padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; margin:10px; }
-.upload-area { border:2px dashed #ccc; padding:40px; border-radius:10px; margin:20px auto; width:80%; text-align:center; background:#fff; }
-.category-header { background:#eee; padding:10px; cursor:pointer; border-radius:8px; margin-bottom:5px; font-weight:bold; font-size:1.1em; display:flex; align-items:center; }
-#filterContainer { padding:10px; }
-#filterContainer .filterGrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:10px; margin-bottom:20px; }
-.card { background:#fff; border-radius:10px; padding:10px; text-align:center; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.1); transition:0.2s; font-size:0.9em; display:flex; flex-direction:column; align-items:center; }
-.card:hover { transform:translateY(-2px); box-shadow:0 4px 8px rgba(0,0,0,0.15); }
-.card-icon { font-size:2em; margin-bottom:5px; }
-.modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); justify-content:center; align-items:flex-start; overflow:auto; z-index:9999; padding:40px 0; }
-.modal-content { background:#fff; padding:20px; border-radius:10px; max-width:90%; width:90%; max-height:90%; overflow:auto; }
-.close { float:right; cursor:pointer; font-weight:bold; font-size:1.5em; }
-input#searchInput { width:80%; padding:8px; margin:10px auto; display:block; border-radius:8px; border:1px solid #ccc; font-size:0.9em; }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Nova Run – Original Platformer</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+  <style>
+    :root{
+      --bg1:#0e1224; --bg2:#121632; --ink:#e6eaff; --muted:#96a0ff;
+      --glass: rgba(255,255,255,.08); --brand:#7c5cff; --brand2:#2cd9ff; --ok:#2ee6a6;
+    }
+    html,body{height:100%;}
+    body{margin:0; background: radial-gradient(1000px 600px at 10% 10%, #1b2150 0%, var(--bg1) 35%),
+                         linear-gradient(140deg, var(--bg2), #0a0d1d 70%);
+         color: var(--ink); font: 16px/1.45 ui-sans-serif, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial;}
+    /* Center helpers */
+    .center{position:fixed; inset:0; display:grid; place-items:center;}
+
+    /* Landing */
+    .landing{gap:16px; text-align:center; padding:20px;}
+    .logoWrap{width:140px; aspect-ratio:1/1; display:grid; place-items:center; border-radius:28px;
+      background: linear-gradient(145deg, #2a2e57, #0e1130);
+      box-shadow: 10px 14px 30px rgba(0,0,0,.55), inset -8px -8px 18px rgba(0,0,0,.35), inset 8px 8px 22px rgba(255,255,255,.06);
+      cursor:pointer; transition: transform .2s ease, box-shadow .2s ease;}
+    .logoWrap:hover{ transform: translateY(-2px) scale(1.02);}  
+    .logo{width:72%; aspect-ratio:1/1; border-radius:22%; position:relative;
+      background: conic-gradient(from 210deg, #ffb703, #fb5607 35%, #e01e5a 55%, #7b2cbf 80%, #4895ef 100%);
+      box-shadow: inset 0 0 0 10px rgba(255,255,255,.08);}
+    .logo::after{content:''; position:absolute; inset:18% 18% 40% 18%; border-radius:16px; background:rgba(255,255,255,.22); filter: blur(4px);}
+    h1{margin:6px 0 2px; font-size:28px; letter-spacing:.4px;}
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px;
+      background: var(--glass); backdrop-filter: blur(6px); border:1px solid rgba(255,255,255,.06); font-size:12px;}
+    .hint{opacity:.9}
+
+    /* Loading overlay */
+    .loading{position:fixed; inset:0; background:rgba(10,12,25,.9); display:none;}
+    .loadBox{width:min(520px,86vw); padding:22px; border-radius:20px; background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.08); box-shadow: 0 10px 30px rgba(0,0,0,.6);}
+    .bar{height:10px; background:rgba(255,255,255,.12); border-radius:99px; overflow:hidden;}
+    .bar>i{display:block; height:100%; width:0%; background:linear-gradient(90deg, var(--brand), var(--brand2));}
+
+    /* Rotate helper */
+    .rotateNotice{position:fixed; inset:0; background:rgba(10,12,25,.92); display:none;}
+    .phone{width:50px; height:80px; border:2px solid rgba(255,255,255,.35); border-radius:10px;}
+
+    /* Game container */
+    #game-wrap{position:fixed; inset:0; display:none;}
+
+    /* On-screen controls (mobile) */
+    .pad{position:fixed; bottom:12px; left:12px; display:flex; gap:10px; align-items:center; opacity:.9;}
+    .btn{width:54px; height:54px; border-radius:50%; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.08);
+      display:grid; place-items:center; font-weight:700;}
+    .btn:active{transform: scale(.96);} 
+    .padR{position:fixed; bottom:12px; right:12px; display:flex; gap:10px; align-items:center; opacity:.9;}
+
+    /* Utility */
+    .hide{display:none !important}
+  </style>
 </head>
 <body>
 
-<header>CCTA Filter Hub</header>
-
-<section class="hero">
-  <h1>Selamat Datang di CCTA Filter Hub</h1>
-  <p>Tap kategori untuk melihat semua filter. Gunakan search untuk menemukan filter dengan cepat.</p>
-  <button class="primary" id="cobaSekarangBtn">Coba Sekarang ></button>
-</section>
-
-<section class="upload-area">
-  <p>Upload foto Anda di sini</p>
-  <input type="file" id="uploadInput" style="display:none;">
-  <button onclick="document.getElementById('uploadInput').click()">Pilih File</button>
-</section>
-
-<section id="dashboard">
-  <button id="downloadBtn">Download Hasil</button>
-</section>
-
-<input type="text" id="searchInput" placeholder="Cari filter di semua kategori...">
-<div id="filterContainer"></div>
-
-<div class="modal" id="modal">
-  <div class="modal-content">
-    <span class="close" id="closeModal">&times;</span>
-    <div id="modalBody"></div>
+  <!-- LANDING -->
+  <div id="landing" class="center landing">
+    <div class="logoWrap" id="enterBtn" aria-label="Masuk ke permainan">
+      <div class="logo"></div>
+    </div>
+    <h1><strong>Nova Run</strong></h1>
+    <span class="pill">Tap ikon di atas untuk mulai</span>
+    <div class="hint">Desain original. Mode landscape.</div>
   </div>
-</div>
+
+  <!-- LOADING OVERLAY -->
+  <div id="loading" class="center loading">
+    <div class="loadBox">
+      <div style="font-weight:700; margin-bottom:8px">Memuat aset…</div>
+      <div class="bar"><i id="barFill"></i></div>
+      <div id="barText" style="margin-top:8px; font-size:12px; opacity:.85">0%</div>
+    </div>
+  </div>
+
+  <!-- ROTATE NOTICE (shows on portrait) -->
+  <div id="rotate" class="center rotateNotice">
+    <div style="text-align:center">
+      <div class="phone" style="margin:0 auto 12px"></div>
+      <div style="font-weight:700; margin-bottom:6px">Putar perangkat ke <em>landscape</em></div>
+      <div class="pill">Kami akan mencoba kunci orientasi</div>
+    </div>
+  </div>
+
+  <!-- GAME WRAP (Phaser injects canvas here) -->
+  <div id="game-wrap"></div>
+
+  <!-- MOBILE CONTROLS -->
+  <div id="controlsL" class="pad hide">
+    <button class="btn" id="leftBtn" aria-label="kiri">◀</button>
+    <button class="btn" id="rightBtn" aria-label="kanan">▶</button>
+  </div>
+  <div id="controlsR" class="padR hide">
+    <button class="btn" id="jumpBtn" aria-label="lompat">⤴</button>
+    <button class="btn" id="dashBtn" aria-label="dash">⟡</button>
+  </div>
 
 <script>
-const filterContainer = document.getElementById("filterContainer");
-const modal = document.getElementById("modal");
-const closeModal = document.getElementById("closeModal");
-const modalBody = document.getElementById("modalBody");
-const searchInput = document.getElementById("searchInput");
+  // ------- UI FLOW: Landing → Loading → Game (Landscape) -------
+  const enterBtn = document.getElementById('enterBtn');
+  const loadingEl = document.getElementById('loading');
+  const landingEl = document.getElementById('landing');
+  const rotateEl = document.getElementById('rotate');
+  const gameWrap = document.getElementById('game-wrap');
+  const barFill = document.getElementById('barFill');
+  const barText = document.getElementById('barText');
 
-// Load JSON lengkap
-async function loadFiltersJSON() {
-    try {
-        const res = await fetch('filters_644_full.json'); // file JSON lengkap
-        const filters = await res.json();
-        initFilters(filters);
-    } catch(e){ console.error("Gagal load JSON", e); }
-}
+  function isLandscape(){return window.innerWidth > window.innerHeight}
 
-// Render filters
-function initFilters(filters){
-    filterContainer.innerHTML="";
-    for(let cat in filters){
-        const header=document.createElement("div");
-        header.className="category-header";
-        header.textContent=cat;
-        const grid=document.createElement("div");
-        grid.className="filterGrid";
+  async function goFullscreenAndLockLandscape(){
+    try{
+      if(document.documentElement.requestFullscreen){
+        await document.documentElement.requestFullscreen();
+      }
+      if(screen.orientation && screen.orientation.lock){
+        await screen.orientation.lock('landscape');
+      }
+    }catch(e){ /* Some browsers block without user gesture or permission */ }
+  }
 
-        filters[cat].forEach(f=>{
-            const card=document.createElement("div");
-            card.className="card";
-            const iconSpan=document.createElement("span");
-            iconSpan.className="card-icon"; iconSpan.textContent=f.icon;
-            card.appendChild(iconSpan);
-            const nameSpan=document.createElement("span"); nameSpan.textContent=f.name;
-            card.appendChild(nameSpan);
-            card.onclick=()=>showFilterDetails(f);
-            grid.appendChild(card);
-        });
+  function showRotateIfNeeded(){
+    rotateEl.style.display = isLandscape()? 'none' : 'grid';
+  }
 
-        grid.style.display="none";
-        header.onclick=()=>{ grid.style.display = grid.style.display==="none" ? "grid" : "none"; }
-        filterContainer.appendChild(header);
-        filterContainer.appendChild(grid);
+  window.addEventListener('orientationchange', showRotateIfNeeded);
+  window.addEventListener('resize', showRotateIfNeeded);
+
+  enterBtn.addEventListener('click', async ()=>{
+    landingEl.style.display='none';
+    loadingEl.style.display='grid';
+    await goFullscreenAndLockLandscape();
+    showRotateIfNeeded();
+
+    // Fake loading progress while Phaser boots
+    let p=0; const timer=setInterval(()=>{
+      p=Math.min(100, p+8+Math.random()*12);
+      barFill.style.width=p+'%';
+      barText.textContent=Math.floor(p)+'%';
+      if(p>=100){ clearInterval(timer); initGame(); }
+    }, 120);
+  });
+
+  // ------- PHASER GAME -------
+  let game, cursors, keys, mobile = ('ontouchstart' in window);
+
+  function initGame(){
+    gameWrap.style.display='block';
+    if(mobile){
+      document.getElementById('controlsL').classList.remove('hide');
+      document.getElementById('controlsR').classList.remove('hide');
     }
-}
 
-// Modal
-function showFilterDetails(filter){
-    modalBody.innerHTML="<h3>"+filter.name+"</h3>";
-    filter.subfilters.forEach(s=>{
-        const p=document.createElement("p"); p.textContent=s;
-        modalBody.appendChild(p);
-    });
-    modal.style.display="flex";
-}
-closeModal.onclick=()=>modal.style.display="none";
+    const config = {
+      type: Phaser.AUTO,
+      parent: 'game-wrap',
+      backgroundColor: '#0d0f2a',
+      scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, width: 960, height: 540 },
+      physics: { default: 'arcade', arcade: { gravity: { y: 1200 }, debug: false } },
+      scene: [BootScene, MenuScene, GameScene, UIScene]
+    };
+    game = new Phaser.Game(config);
+  }
 
-// Search realtime
-searchInput.addEventListener("input",()=>{
-    const q=searchInput.value.toLowerCase();
-    const grids=filterContainer.querySelectorAll(".filterGrid");
-    grids.forEach(grid=>{
-        const cards=grid.querySelectorAll(".card");
-        let any=false;
-        cards.forEach(c=>{
-            if(c.textContent.toLowerCase().includes(q)){ c.style.display="flex"; any=true; }
-            else c.style.display="none";
-        });
-        grid.style.display = any ? "grid" : "none";
-    });
-});
+  // ---- Scenes ----
+  class BootScene extends Phaser.Scene{
+    constructor(){ super('boot'); }
+    preload(){
+      // Generate textures (no external images) so this is original design
+      this.createPlayerTexture();
+      this.createBotTexture();
+      this.createTileTexture();
+      this.createCoinTexture();
+      this.createFlagTexture();
+      // Minimal audio using tiny data-URIs would be possible; skipped for brevity
+      this.time.delayedCall(400, ()=> this.scene.start('menu'));
+    }
+    createPlayerTexture(){
+      const g = this.make.graphics({x:0,y:0, add:false});
+      g.fillStyle(0x7c5cff,1); g.fillRoundedRect(0,0,44,44,10);
+      g.fillStyle(0xffffff,1); g.fillCircle(16,16,5); g.fillCircle(28,16,5);
+      g.fillStyle(0x2cd9ff,1); g.fillRoundedRect(6,28,32,10,5);
+      g.generateTexture('player',44,44); g.clear();
+    }
+    createBotTexture(){
+      const g = this.make.graphics({add:false});
+      g.fillStyle(0xff5d8f,1); g.fillRoundedRect(0,0,42,30,10);
+      g.fillStyle(0x000000, .2); g.fillRoundedRect(4,4,34,10,6);
+      g.fillStyle(0xffffff,1); g.fillCircle(14,18,4); g.fillCircle(28,18,4);
+      g.generateTexture('bot',42,30); g.clear();
+    }
+    createTileTexture(){
+      const g = this.make.graphics({add:false});
+      g.fillStyle(0x303a80,1); g.fillRoundedRect(0,0,64,32,6);
+      g.lineStyle(2,0x4e59b6,1); g.strokeRoundedRect(1,1,62,30,6);
+      g.fillStyle(0x1f245c,1); g.fillRoundedRect(0,22,64,10,0);
+      g.generateTexture('tile',64,32); g.clear();
+    }
+    createCoinTexture(){
+      const g = this.make.graphics({add:false});
+      g.fillStyle(0xffd166,1); g.fillCircle(12,12,12);
+      g.lineStyle(3,0xffa600,1); g.strokeCircle(12,12,11);
+      g.fillStyle(0xfff2c2,1); g.fillCircle(8,8,3);
+      g.generateTexture('coin',24,24); g.clear();
+    }
+    createFlagTexture(){
+      const g = this.make.graphics({add:false});
+      g.fillStyle(0x2ee6a6,1); g.fillRect(0,0,8,120);
+      g.fillStyle(0x7c5cff,1); g.fillTriangle(8,0,96,22,8,44);
+      g.generateTexture('flag',96,120); g.clear();
+    }
+  }
 
-// Upload & Download
-document.getElementById("uploadInput").addEventListener("change",function(){ alert("File uploaded: "+this.files[0].name); });
-document.getElementById("downloadBtn").addEventListener("click",()=>{ alert("Download akan dimulai!"); });
-document.getElementById("cobaSekarangBtn").onclick=()=>{ window.scrollTo({ top: filterContainer.offsetTop, behavior:'smooth' }); }
+  class MenuScene extends Phaser.Scene{
+    constructor(){ super('menu'); }
+    create(){
+      const { width, height } = this.scale;
+      this.add.text(width/2, height*0.28, 'NOVA RUN', {fontFamily:'system-ui,Segoe UI,Roboto', fontSize:64, color:'#e6eaff'}).setOrigin(.5);
+      const btn = this.add.text(width/2, height*0.6, 'MULAI', {fontFamily:'system-ui,Segoe UI,Roboto', fontSize:38, color:'#0a0d1d', backgroundColor:'#7c5cff', padding:{left:24,right:24,top:12,bottom:12}}).setOrigin(.5).setInteractive({useHandCursor:true});
+      btn.on('pointerup', ()=> this.scene.start('game'));
+      this.add.text(width/2, height*0.75, 'Kontrol: A/D atau ◀▶, Jump: W/Spasi/⤴, Dash: K/⟡', {fontFamily:'monospace', fontSize:16, color:'#96a0ff'}).setOrigin(.5);
 
-// Load JSON
-loadFiltersJSON();
+      // Ambient particles
+      const p = this.add.particles(0,0,'coin', { speed: {min:-40,max:40}, scale:{start:.5,end:0}, lifespan: 2000, quantity: 2, blendMode: 'ADD' });
+      p.setPosition(width/2, height/3);
+    }
+  }
+
+  class GameScene extends Phaser.Scene{
+    constructor(){ super('game'); }
+    create(){
+      const { width, height } = this.scale;
+      this.sky = this.add.rectangle(0,0,width,height,0x0d1033).setOrigin(0);
+
+      // Parallax stars
+      this.stars = this.add.group();
+      for(let i=0;i<120;i++){
+        const s = this.add.circle(Math.random()*width, Math.random()*height, Math.random()<.92?1.5:3, 0x7c5cff, .8);
+        this.stars.add(s);
+      }
+
+      // Platforms
+      this.platforms = this.physics.add.staticGroup();
+      const addPlat=(x,y,w=1)=>{ for(let i=0;i<w;i++){ this.platforms.create(x+i*64,y,'tile').refreshBody(); } };
+      addPlat(0,height-32, Math.ceil(width/64)+2); // ground
+      addPlat(180,height-140,2); addPlat(380,height-220,2); addPlat(620,height-300,2); addPlat(840,height-160,3);
+
+      // Player
+      this.player = this.physics.add.sprite(80,height-100,'player');
+      this.player.setCollideWorldBounds(true).setBounce(0.05).setDragX(1200);
+      this.physics.add.collider(this.player, this.platforms);
+
+      // Bots (enemies)
+      this.bots = this.physics.add.group();
+      const b1=this.bots.create(430,height-260,'bot'); b1.setVelocityX(80).setBounce(1,0).setCollideWorldBounds(true);
+      const b2=this.bots.create(900,height-200,'bot'); b2.setVelocityX(-80).setBounce(1,0).setCollideWorldBounds(true);
+      this.physics.add.collider(this.bots, this.platforms);
+
+      // Coins
+      this.coins = this.physics.add.group({allowGravity:false});
+      const coinPos=[ [220,height-180],[280,height-180],[610,height-340],[680,height-340],[870,height-200],[940,height-200] ];
+      coinPos.forEach(([x,y])=> this.coins.create(x,y,'coin'));
+
+      // Flag (finish)
+      this.flag = this.physics.add.staticImage(width-80, height-152, 'flag').setOrigin(0.5,1);
+
+      // Overlaps & Collisions
+      this.physics.add.overlap(this.player, this.coins, (pl, c)=>{ c.destroy(); this.events.emit('coin'); });
+      this.physics.add.overlap(this.player, this.bots, (pl, bot)=>{ this.gameOver(); });
+      this.physics.add.overlap(this.player, this.flag, ()=>{ this.win(); });
+
+      // Camera
+      this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
+      this.cameras.main.setBounds(0,0,width,height);
+
+      // Input
+      cursors = this.input.keyboard.createCursorKeys();
+      keys = this.input.keyboard.addKeys({A:Phaser.Input.Keyboard.KeyCodes.A, D:Phaser.Input.Keyboard.KeyCodes.D, W:Phaser.Input.Keyboard.KeyCodes.W, K:Phaser.Input.Keyboard.KeyCodes.K});
+
+      // On-screen buttons
+      setupMobileControls(this);
+
+      // HUD via separate scene
+      this.scene.launch('ui');
+      this.registry.set('coins',0);
+    }
+
+    update(){
+      const onGround = this.player.body.blocked.down;
+      const speed = 260;
+
+      // Horizontal
+      if(isDown('left')) this.player.setVelocityX(-speed);
+      else if(isDown('right')) this.player.setVelocityX(speed);
+
+      // Jump
+      if(isPressed('jump') && onGround){ this.player.setVelocityY(-560); }
+      // Dash (short horizontal boost)
+      if(isPressed('dash')){
+        const dir = (isDown('left')? -1 : isDown('right')? 1 : (this.player.body.velocity.x>=0?1:-1));
+        this.player.setVelocityX(600*dir);
+      }
+    }
+
+    gameOver(){
+      this.scene.pause();
+      this.scene.get('ui').events.emit('banner','KALAH! Tap untuk ulang');
+      this.input.once('pointerup', ()=> this.scene.restart());
+    }
+
+    win(){
+      this.scene.pause();
+      this.scene.get('ui').events.emit('banner','MENANG! Tap untuk main lagi');
+      this.input.once('pointerup', ()=> this.scene.restart());
+    }
+  }
+
+  class UIScene extends Phaser.Scene{
+    constructor(){ super('ui'); }
+    create(){
+      const {width} = this.scale;
+      this.scoreText = this.add.text(16,16, 'Koin: 0', {fontFamily:'ui-sans-serif,system-ui', fontSize:22, color:'#e6eaff'}).setScrollFactor(0);
+      this.banner = this.add.text(width/2, 70, '', {fontFamily:'system-ui', fontSize:36, color:'#0a0d1d', backgroundColor:'#2cd9ff', padding:{left:16,right:16,top:8,bottom:8}}).setOrigin(.5).setScrollFactor(0).setAlpha(0);
+
+      this.events.on('banner', (msg)=>{
+        this.banner.setText(msg);
+        this.tweens.add({targets:this.banner, alpha:1, yoyo:true, hold:1500, duration:500});
+      });
+
+      this.scene.get('game').events.on('coin', ()=>{
+        const v = (this.registry.get('coins')||0)+1; this.registry.set('coins', v);
+        this.scoreText.setText('Koin: '+v);
+      });
+    }
+  }
+
+  // ---- Input helpers ----
+  const state = { left:false, right:false, jump:false, dash:false };
+  function isDown(k){ return k==='left'? (state.left || (cursors && (cursors.left.isDown || keys.A.isDown)))
+                              : k==='right'? (state.right || (cursors && (cursors.right.isDown || keys.D.isDown)))
+                              : false; }
+  function isPressed(k){
+    if(k==='jump') return (state.jump || (cursors && (Phaser.Input.Keyboard.JustDown(cursors.up) || Phaser.Input.Keyboard.JustDown(keys.W) || Phaser.Input.Keyboard.JustDown(cursors.space))));
+    if(k==='dash') return (state.dash || (cursors && Phaser.Input.Keyboard.JustDown(keys.K)));
+    return false;
+  }
+
+  function setupMobileControls(scene){
+    const leftBtn=document.getElementById('leftBtn');
+    const rightBtn=document.getElementById('rightBtn');
+    const jumpBtn=document.getElementById('jumpBtn');
+    const dashBtn=document.getElementById('dashBtn');
+
+    const setHold=(el, key)=>{
+      const on=()=>{state[key]=true}; const off=()=>{state[key]=false};
+      el.addEventListener('touchstart', on); el.addEventListener('mousedown', on);
+      el.addEventListener('touchend', off); el.addEventListener('mouseup', off); el.addEventListener('mouseleave', off);
+    };
+    setHold(leftBtn,'left'); setHold(rightBtn,'right');
+    jumpBtn.addEventListener('touchstart', ()=>{ state.jump=true; setTimeout(()=>state.jump=false, 0); });
+    jumpBtn.addEventListener('mousedown', ()=>{ state.jump=true; setTimeout(()=>state.jump=false, 0); });
+    dashBtn.addEventListener('touchstart', ()=>{ state.dash=true; setTimeout(()=>state.dash=false, 0); });
+    dashBtn.addEventListener('mousedown', ()=>{ state.dash=true; setTimeout(()=>state.dash=false, 0); });
+  }
 </script>
-
 </body>
 </html>
